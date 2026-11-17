@@ -27,11 +27,16 @@ jobs:
           php-version: '8.3'
           tools: none
 
+      # Lint the PHP as Blueprint installs it: {identifier} is filled in
+      # first, since a namespace or class name with it isn't valid PHP yet.
       - name: PHP syntax
         run: |
           status=0
+          mkdir -p "$RUNNER_TEMP/php"
           while IFS= read -r file; do
-            php -l "$file" >/dev/null || status=1
+            out="$RUNNER_TEMP/php/$(echo "$file" | tr '/' '_')"
+            sed 's/{identifier}/mcpaste/g' "$file" > "$out"
+            php -l "$out" >/dev/null || { echo "::error file=$file::PHP syntax error"; status=1; }
           done < <(find extension -name '*.php')
           exit $status
 
