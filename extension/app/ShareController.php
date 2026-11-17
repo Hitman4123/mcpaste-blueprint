@@ -170,12 +170,12 @@ class ShareController extends Controller
             $usage = $live['utilization'] ?? [];
             $details['State'] = $live['state'] ?? ($usage['state'] ?? null);
             if (isset($usage['cpu_absolute'], $usage['memory_bytes'])) {
-                $details['CPU / RAM'] = round((float) $usage['cpu_absolute']) . '% · ' . $this->gigabytes((int) $usage['memory_bytes'])
-                    . ($server->memory > 0 ? ' of ' . $this->gigabytes($server->memory * 1024 * 1024) : '');
+                $details['CPU / RAM'] = $this->percent((float) $usage['cpu_absolute']) . ' · ' . $this->size((int) $usage['memory_bytes'])
+                    . ($server->memory > 0 ? ' of ' . $this->size($server->memory * 1024 * 1024) : '');
             }
             if (isset($usage['disk_bytes'])) {
-                $details['Disk'] = $this->gigabytes((int) $usage['disk_bytes'])
-                    . ($server->disk > 0 ? ' of ' . $this->gigabytes($server->disk * 1024 * 1024) : '');
+                $details['Disk'] = $this->size((int) $usage['disk_bytes'])
+                    . ($server->disk > 0 ? ' of ' . $this->size($server->disk * 1024 * 1024) : '');
             }
         } catch (\Throwable) {
             // Wings unreachable: share the log without live numbers.
@@ -201,8 +201,19 @@ class ShareController extends Controller
         return self::BORDER . "\n" . implode("\n", $rows) . "\n" . self::BORDER;
     }
 
-    private function gigabytes(int $bytes): string
+    /** "4.21 GB" from 1 GB up, "312 MB" below, so small servers don't read "0.00 GB". */
+    private function size(int $bytes): string
     {
-        return number_format($bytes / 1024 / 1024 / 1024, 2) . ' GB';
+        $gigabytes = $bytes / 1024 / 1024 / 1024;
+
+        return $gigabytes >= 1
+            ? number_format($gigabytes, 2) . ' GB'
+            : number_format($bytes / 1024 / 1024, 0) . ' MB';
+    }
+
+    /** "187%", or "0.4%" below 10, so an idle server doesn't read "0%". */
+    private function percent(float $value): string
+    {
+        return ($value < 10 ? number_format($value, 1) : number_format($value, 0)) . '%';
     }
 }

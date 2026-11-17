@@ -11,9 +11,8 @@ recognises to the top, and gives back a link to drop into a support ticket.
 - The server's node, state, resource use, Docker image and egg are attached,
   so support doesn't have to ask.
 
-> **Status: beta, not released yet.** It installs and works on a test panel,
-> but it hasn't run against a live game server yet (see [Testing](#testing)).
-> There is no release to download until it has.
+> **Status: 1.0.0.** Tested end to end on a Pterodactyl + Blueprint panel with
+> a Wings node and a running server (see [Testing](#testing)).
 
 ## Requirements
 
@@ -88,29 +87,40 @@ checks this on every share.
 
 ## Testing
 
-What has been checked so far, on a panel built from Blueprint's official
-Docker image (Blueprint `beta-2026-08`) **without a Wings node**:
+1.0.0 was tested on a local Pterodactyl panel built from Blueprint's
+official Docker image (Blueprint `beta-2026-08`), with a Wings node
+(`ghcr.io/pterodactyl/wings`) running a small server that prints
+Minecraft-style log lines. It posted to a local copy of MCPaste.
 
-- `blueprint -install mcpaste` succeeds, and the panel's frontend build
-  compiles the extension.
-- The admin page:
+- **Install:** `blueprint -install mcpaste` succeeds, the panel's frontend
+  build compiles the extension, and the panel's own `tsc` reports nothing in
+  it. Reinstalling over it (an update) keeps its settings.
+- **Admin page:**
   - rejects a bad key and confirms a good one with MCPaste
   - never puts the saved key in the page
   - stores the key encrypted
-- The share route:
-  - returns a link for the server's owner
-  - answers 404 to a user without access
-  - answers 401 without a sign-in
-  - answers 422 for an empty console
-- The paste arrives on MCPaste with its server details card, and IPs masked.
+- **Console:**
+  - **Share log** sits beside Start, Restart and Stop, and is enabled once
+    the console connects.
+  - With the server running, the dialog counted the lines received live.
+    After a page reload, it also counted the history Wings replays.
+  - Share returned a link, with Copy and Open it.
+- **The paste:**
+  - The details card arrived parsed, with live State, CPU / RAM and Disk
+    from Wings, the Docker image and the egg.
+  - IP addresses were masked, and the panel's hostname was shown as the
+    source.
+- **Who can share:**
 
-**Not yet checked**, because they need a live game server:
-
-- collecting console output in the browser
-- the Share dialog
-- live CPU, RAM and disk numbers
-
-There will be no release until these have been checked on a real panel.
+  | Who | Result |
+  | --- | --- |
+  | The server's owner | a link (201) |
+  | A subuser with console access | a link (201) |
+  | A subuser without console access | 404, matching the 403 the panel's own console gives them |
+  | No sign-in | 401 |
+  | The owner, on a suspended server | 409 |
+  | A sixth share in a minute | 429 |
+  | An empty console | 422 |
 
 ## Building it yourself
 
