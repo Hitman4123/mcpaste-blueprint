@@ -1,0 +1,4 @@
+Server:
+  Terminal:
+    # The row with Start / Restart / Stop on every server's console page.
+    AdditionalPowerButtons: 'ShareLogButton'

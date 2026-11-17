@@ -1,0 +1,47 @@
+# A tag v<version> builds mcpaste.blueprint and attaches it to a GitHub
+# release. The tag must match info.version in extension/conf.yml.
+#
+# The newest release's file is always at
+# https://github.com/Hitman4123/mcpaste-blueprint/releases/latest/download/mcpaste.blueprint
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: node scripts/build.mjs
+
+      - name: Check the tag matches conf.yml
+        run: |
+          version=$(node -p "require('./dist/mcpaste.blueprint.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME doesn't match conf.yml version $version" >&2
+            exit 1
+          fi
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sha=$(node -p "require('./dist/mcpaste.blueprint.json').sha256")
+          target=$(node -p "require('./dist/mcpaste.blueprint.json').target")
+          # The CHANGELOG section for this version, if there is one.
+          notes=$(awk -v v="$version" 'index($0, "## [" v "]") == 1 {on=1; next} /^## / {on=0} on' CHANGELOG.md)
+          printf '%s\n\nBuilt for Blueprint %s. Install from the Pterodactyl folder:\n\n    blueprint -install mcpaste\n\nsha256: `%s`\n' \
+            "$notes" "$target" "$sha" > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/mcpaste.blueprint \
+            --title "MCPaste $version" --notes-file notes.md
