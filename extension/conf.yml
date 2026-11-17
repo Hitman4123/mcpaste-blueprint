@@ -1,0 +1,37 @@
+info:
+  name: "MCPaste"
+  identifier: "mcpaste"
+  description: "Adds a Share log button to every server console. It posts the console to MCPaste with the server's details attached and hands back a link with the errors already found. The MCPaste token stays on the panel; browsers never see it."
+  flags: ""
+  version: "1.0.0"
+  target: "beta-2026-08"
+  author: "MCPaste"
+  icon: "icon.svg"
+  website: "https://github.com/Hitman4123/mcpaste-blueprint"
+
+admin:
+  view: "admin/view.blade.php"
+  controller: "admin/controller.php"
+  css: ""
+  wrapper: ""
+
+dashboard:
+  css: ""
+  wrapper: ""
+  components: "components"
+
+data:
+  directory: ""
+  public: ""
+  console: ""
+
+requests:
+  views: ""
+  app: "app"
+  routers:
+    application: ""
+    client: "routers/client.php"
+    web: ""
+
+database:
+  migrations: ""
