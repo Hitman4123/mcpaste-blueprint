@@ -3,7 +3,7 @@
 Versions follow `info.version` in `extension/conf.yml`. A tag `v<version>`
 publishes a release, with this file's section for that version as its notes.
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-11-17
 
 First version.
 
@@ -20,3 +20,6 @@ First version.
 - Shares need console access to the server (`websocket.connect`). They're
   refused for suspended or installing servers (except for admins) and limited
   to 5 a minute per user.
+- Sizes in the details block read in MB below 1 GB, and CPU gets one
+  decimal below 10%, so a small or idle server doesn't show "0.00 GB" or
+  "0%".
